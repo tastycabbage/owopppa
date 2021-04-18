@@ -2343,7 +2343,7 @@ var RANK = exports.RANK = {
 	NONE: 0,
 	USER: 1,
 	MODERATOR: 2,
-	ADMIN: 3
+	BOB: 3
 };
 
 _global.PublicAPI.RANK = RANK;
@@ -2821,7 +2821,7 @@ _global.eventSys.on(_conf.EVENTS.net.sec.rank, function (newRank) {
 			break;
 
 		case _conf.RANK.MODERATOR:
-		case _conf.RANK.ADMIN:
+		case _conf.RANK.BOB:
 			(0, _main.showDevChat)(true);
 			(0, _main.showPlayerList)(true);
 			(0, _main.revealSecrets)(true);
@@ -3086,7 +3086,7 @@ function receiveMessage(text) {
 	} else if (text.startsWith("(M)")) {
 		message.className = "moderator";
 	} else if (isNaN(text.split(": ")[0]) && text.split(": ")[0].charAt(0) != "[") {
-		message.className = "admin";
+		message.className = "bob";
 		isAdmin = true;
 	} else {
 		var nick = document.createElement("span");
@@ -3514,8 +3514,8 @@ function init() {
 					historyIndex = 0;
 					chatHistory.unshift(text);
 					if (misc.storageEnabled) {
-						if (text.startsWith("/adminlogin ")) {
-							misc.localStorage.adminlogin = text.slice(12);
+						if (text.startsWith("/boblogin ")) {
+							misc.localStorage.boblogin = text.slice(12);
 						} else if (text.startsWith("/modlogin ")) {
 							misc.localStorage.modlogin = text.slice(10);
 						} else if (text.startsWith("/nick")) {
@@ -3932,14 +3932,14 @@ _global.eventSys.on(_conf.EVENTS.net.world.setId, function (id) {
 	}
 
 	// Automatic login
-	var desiredRank = misc.localStorage.adminlogin ? _conf.RANK.ADMIN : misc.localStorage.modlogin ? _conf.RANK.MODERATOR : _networking.net.protocol.worldName in misc.worldPasswords ? _conf.RANK.USER : _conf.RANK.NONE;
+	var desiredRank = misc.localStorage.boblogin ? _conf.RANK.BOB : misc.localStorage.modlogin ? _conf.RANK.MODERATOR : _networking.net.protocol.worldName in misc.worldPasswords ? _conf.RANK.USER : _conf.RANK.NONE;
 	if (desiredRank > _conf.RANK.NONE) {
 		var mightBeMod = false;
 		var onWrong = function onWrong() {
 			console.log("WRONG");
 			_global.eventSys.removeListener(_conf.EVENTS.net.sec.rank, onCorrect);
-			if (desiredRank == _conf.RANK.ADMIN) {
-				delete misc.localStorage.adminlogin;
+			if (desiredRank == _conf.RANK.BOB) {
+				delete misc.localStorage.boblogin;
 			} else if (desiredRank == _conf.RANK.MODERATOR) {
 				delete misc.localStorage.modlogin;
 			} else if (desiredRank == _conf.RANK.USER) {
@@ -3963,8 +3963,8 @@ _global.eventSys.on(_conf.EVENTS.net.world.setId, function (id) {
 		_global.eventSys.once(_conf.EVENTS.net.disconnected, onWrong);
 		_global.eventSys.on(_conf.EVENTS.net.sec.rank, onCorrect);
 		var msg;
-		if (desiredRank == _conf.RANK.ADMIN) {
-			msg = "/adminlogin " + misc.localStorage.adminlogin;
+		if (desiredRank == _conf.RANK.BOB) {
+			msg = "/boblogin " + misc.localStorage.boblogin;
 		} else if (desiredRank == _conf.RANK.MODERATOR) {
 			msg = "/modlogin " + misc.localStorage.modlogin;
 		} else if (desiredRank == _conf.RANK.USER) {
@@ -4028,7 +4028,7 @@ window.addEventListener("error", function (e) {
 		/* Should be some kind of dissapearing notification instead */
 		receiveDevMessage(errmsg[i]);
 	}
-	if (_local_player.player.rank !== _conf.RANK.ADMIN) {
+	if (_local_player.player.rank !== _conf.RANK.BOB) {
 		/* TODO */
 		if (misc.exceptionTimeout) {
 			clearTimeout(misc.exceptionTimeout);
@@ -4375,8 +4375,8 @@ var OldProtocol = exports.OldProtocol = {
 	maxWorldNameLength: 24,
 	worldBorder: 0xFFFFF,
 	chatBucket: [4, 6],
-	placeBucket: (_placeBucket = {}, _defineProperty(_placeBucket, _conf.RANK.NONE, [0, 1]), _defineProperty(_placeBucket, _conf.RANK.USER, [32, 4]), _defineProperty(_placeBucket, _conf.RANK.MODERATOR, [32, 2]), _defineProperty(_placeBucket, _conf.RANK.ADMIN, [32, 0]), _placeBucket),
-	maxMessageLength: (_maxMessageLength = {}, _defineProperty(_maxMessageLength, _conf.RANK.NONE, 128), _defineProperty(_maxMessageLength, _conf.RANK.USER, 128), _defineProperty(_maxMessageLength, _conf.RANK.MODERATOR, 512), _defineProperty(_maxMessageLength, _conf.RANK.ADMIN, 16384), _maxMessageLength),
+	placeBucket: (_placeBucket = {}, _defineProperty(_placeBucket, _conf.RANK.NONE, [0, 1]), _defineProperty(_placeBucket, _conf.RANK.USER, [32, 4]), _defineProperty(_placeBucket, _conf.RANK.MODERATOR, [32, 2]), _defineProperty(_placeBucket, _conf.RANK.BOB, [32, 0]), _placeBucket),
+	maxMessageLength: (_maxMessageLength = {}, _defineProperty(_maxMessageLength, _conf.RANK.NONE, 128), _defineProperty(_maxMessageLength, _conf.RANK.USER, 128), _defineProperty(_maxMessageLength, _conf.RANK.MODERATOR, 512), _defineProperty(_maxMessageLength, _conf.RANK.BOB, 16384), _maxMessageLength),
 	tools: {
 		id: {}, /* Generated automatically */
 		0: 'cursor',
@@ -4467,7 +4467,7 @@ var OldProtocolImpl = function (_Protocol) {
 		};
 
 		var rankChanged = function rankChanged(rank) {
-			_this.placeBucket.infinite = rank === _conf.RANK.ADMIN;
+			_this.placeBucket.infinite = rank === _conf.RANK.BOB;
 			_main.elements.chatInput.maxLength = OldProtocol.maxMessageLength[rank];
 		};
 		_this.leaveFunc = function () {
@@ -4713,7 +4713,7 @@ var OldProtocolImpl = function (_Protocol) {
 			var distx = Math.trunc(x / OldProtocol.chunkSize) - Math.trunc(this.lastSentX / (OldProtocol.chunkSize * 16));distx *= distx;
 			var disty = Math.trunc(y / OldProtocol.chunkSize) - Math.trunc(this.lastSentY / (OldProtocol.chunkSize * 16));disty *= disty;
 			var dist = Math.sqrt(distx + disty);
-			if (this.isConnected() && (dist < 3 || _local_player.player.rank == _conf.RANK.ADMIN) && this.placeBucket.canSpend(1)) {
+			if (this.isConnected() && (dist < 3 || _local_player.player.rank == _conf.RANK.BOB) && this.placeBucket.canSpend(1)) {
 				var array = new ArrayBuffer(11);
 				var dv = new DataView(array);
 				dv.setInt32(0, x, true);
@@ -4755,7 +4755,7 @@ var OldProtocolImpl = function (_Protocol) {
 		key: 'sendMessage',
 		value: function sendMessage(str) {
 			if (str.length && this.id !== null) {
-				if (_local_player.player.rank == _conf.RANK.ADMIN || this.chatBucket.canSpend(1)) {
+				if (_local_player.player.rank == _conf.RANK.BOB || this.chatBucket.canSpend(1)) {
 					this.ws.send(str + OldProtocol.misc.chatVerification);
 					return true;
 				} else {
@@ -4778,7 +4778,7 @@ var OldProtocolImpl = function (_Protocol) {
 	}, {
 		key: 'setChunk',
 		value: function setChunk(x, y, data) {
-			if (!(_local_player.player.rank == _conf.RANK.ADMIN || _local_player.player.rank == _conf.RANK.MODERATOR && this.placeBucket.canSpend(1.25))) {
+			if (!(_local_player.player.rank == _conf.RANK.BOB || _local_player.player.rank == _conf.RANK.MODERATOR && this.placeBucket.canSpend(1.25))) {
 				return false;
 			}
 
@@ -4797,7 +4797,7 @@ var OldProtocolImpl = function (_Protocol) {
 	}, {
 		key: 'clearChunk',
 		value: function clearChunk(x, y, rgb) {
-			if (_local_player.player.rank == _conf.RANK.ADMIN || _local_player.player.rank == _conf.RANK.MODERATOR && this.placeBucket.canSpend(1)) {
+			if (_local_player.player.rank == _conf.RANK.BOB || _local_player.player.rank == _conf.RANK.MODERATOR && this.placeBucket.canSpend(1)) {
 				var array = new ArrayBuffer(13);
 				var dv = new DataView(array);
 				dv.setInt32(0, x, true);
@@ -5861,7 +5861,7 @@ _global.eventSys.once(_conf.EVENTS.misc.toolsRendered, function () {
 					end = null;
 					return;
 				}
-				if (_local_player.player.rank == _conf.RANK.ADMIN) {
+				if (_local_player.player.rank == _conf.RANK.BOB) {
 					line(start[0], start[1], end[0], end[1], function (x, y) {
 						_main.misc.world.setPixel(x, y, _local_player.player.selectedColor);
 					});
@@ -6123,7 +6123,7 @@ _global.eventSys.once(_conf.EVENTS.misc.toolsRendered, function () {
 		});
 	}));
 
-	addTool(new Tool('Area Delete', _tool_renderer.cursors.areadelete, _Fx.PLAYERFX.NONE, _conf.RANK.ADMIN, function (tool) {
+	addTool(new Tool('Area Delete', _tool_renderer.cursors.areadelete, _Fx.PLAYERFX.NONE, _conf.RANK.BOB, function (tool) {
 		tool.setFxRenderer(function (fx, ctx, time) {
 			if (!fx.extra.isLocalPlayer) return 1;
 			var x = fx.extra.player.x;
@@ -6319,7 +6319,7 @@ _global.eventSys.once(_conf.EVENTS.misc.toolsRendered, function () {
 		});
 	}));
 
-	addTool(new Tool('Paste', _tool_renderer.cursors.paste, _Fx.PLAYERFX.NONE, _conf.RANK.ADMIN, function (tool) {
+	addTool(new Tool('Paste', _tool_renderer.cursors.paste, _Fx.PLAYERFX.NONE, _conf.RANK.BOB, function (tool) {
 		tool.extra.sendQueue = [];
 
 		tool.setFxRenderer(function (fx, ctx, time) {
@@ -6472,7 +6472,7 @@ _global.eventSys.once(_conf.EVENTS.misc.toolsRendered, function () {
 		});
 	}));
 
-	addTool(new Tool('Copy', _tool_renderer.cursors.copy, _Fx.PLAYERFX.NONE, _conf.RANK.ADMIN, function (tool) {
+	addTool(new Tool('Copy', _tool_renderer.cursors.copy, _Fx.PLAYERFX.NONE, _conf.RANK.BOB, function (tool) {
 		function drawText(ctx, str, x, y, centered) {
 			ctx.strokeStyle = "#000000", ctx.fillStyle = "#FFFFFF", ctx.lineWidth = 2.5, ctx.globalAlpha = 0.5;
 			if (centered) {

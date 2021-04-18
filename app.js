@@ -2435,7 +2435,7 @@ var options = exports.options = (0, _misc.propertyDefaults)(userOptions, {
 		default: true,
 		title: 'Official server',
 		proto: 'old',
-		url: "wss://asdddd.glitch.me/"
+		url: "wss://owop-site.glitch.me/"
 	}], // The server address that websockets connect to
 	fallbackFps: 30, // Fps used if requestAnimationFrame is not supported
 	maxChatBuffer: 256, // How many chat messages to retain in the chatbox
